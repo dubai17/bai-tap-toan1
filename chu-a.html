@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trò Chơi Luyện Âm A</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffe4e1; /* Màu hồng phấn */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            overflow: hidden;
+            background-image: url('data:image/svg+xml,%3Csvg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M50 0 L100 50 L50 100 L0 50 Z" fill="%23fff" opacity="0.2"/%3E%3C/svg%3E');
+            background-size: 50px 50px;
+        }
+
+        .game-container {
+            max-width: 600px;
+            width: 100%;
+            padding: 3rem 1.5rem;
+            background-color: #fffaf0; /* Màu kem */
+            border-radius: 2rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), 0 6px 6px rgba(0, 0, 0, 0.1);
+            border: 5px solid #ff69b4; /* Viền hồng đậm */
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .title {
+            font-family: 'Pacifico', cursive;
+            font-size: 2.5rem;
+            color: #ff69b4;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 0 #fff;
+        }
+
+        .sentence-display {
+            min-height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4b0082; /* Tím đậm */
+            padding: 1rem;
+            background-color: #fff0f5; /* Tím nhạt */
+            border-radius: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+            border: 2px dashed #ffb6c1; /* Viền nét đứt */
+            line-height: 1.5;
+            transition: transform 0.3s ease-in-out;
+            flex-wrap: wrap; /* Cho phép các từ xuống dòng */
+            justify-content: center; /* Giữ các từ ở giữa */
+        }
+
+        .sentence-display span {
+            display: inline-block;
+        }
+
+        .sentence-display:active {
+            transform: scale(0.98);
+        }
+
+        .icon {
+            margin: 0 0.5rem;
+            font-size: 2.5rem;
+            vertical-align: middle;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            background-color: #ff69b4;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 9999px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border: 3px solid white;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: #ff1493;
+        }
+        
+        .btn:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .read-btn {
+            background-color: #90ee90; /* Xanh lá nhạt */
+            color: #3cb371; /* Xanh lá đậm */
+            font-size: 1.25rem;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 3px solid white;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+        
+        .read-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            background-color: #3cb371;
+            color: white;
+        }
+
+        .read-btn:active:not(:disabled) {
+            transform: scale(1);
+        }
+
+        .read-btn:disabled {
+            background-color: #ccc;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .record-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .record-btn, .playback-btn {
+            background-color: #87ceeb; /* Sky Blue */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            font-size: 1.25rem;
+            border-radius: 9999px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 3px solid white;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+
+        .record-btn.recording {
+            background-color: #ff4500; /* Red-Orange */
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .counter {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ff69b4;
+            text-shadow: 1px 1px 0 #fff;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ff69b4;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .timer-container {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4b0082;
+            margin-top: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .timer-btn {
+            padding: 0.25rem 0.75rem;
+            font-size: 1rem;
+            background-color: #ffcc00;
+            color: white;
+            border-radius: 9999px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .timer-btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <h1 class="title">Bé Học Âm A</h1>
+        <div id="sentence-display" class="sentence-display"></div>
+        <div class="controls">
+            <button id="prev-btn" class="btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <div id="counter" class="counter"></div>
+            <button id="next-btn" class="btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
+        </div>
+        
+        <div class="timer-container">
+            <span id="timer-display"></span>
+            <button id="stop-timer-btn" class="timer-btn">Dừng lại</button>
+        </div>
+
+        <div class="record-controls">
+            <button id="record-btn" class="record-btn">Ghi âm</button>
+            <button id="playback-btn" class="playback-btn" disabled>Nghe lại</button>
+        </div>
+
+        <button id="read-aloud-btn" class="read-btn">
+            Đọc câu văn (Giọng AI)
+        </button>
+    </div>
+
+    <div id="loading-overlay" class="loading">
+        <div class="loading-spinner"></div>
+        <p class="mt-2 text-pink-500 font-bold">Đang tải...</p>
+    </div>
+
+    <script type="module">
+        import { getAuth, signInAnonymously, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        
+        // Constants
+        const API_KEY = ""; 
+        const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=";
+        const LOADING_OVERLAY = document.getElementById('loading-overlay');
+        const MAX_TIME = 120; // 120 seconds
+        
+        // Firebase initialization (required by the platform)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        async function authenticate() {
+            try {
+                const __initial_auth_token = typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : undefined;
+                if (__initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                console.log("Firebase authentication successful.");
+            } catch (error) {
+                console.error("Firebase authentication failed:", error);
+            }
+        }
+        
+        // Data for the game (30 sentences)
+        const sentences = [
+            { text: "Bà và ba ra ga.", icons: ["👴", "🚂"] },
+            { text: "Cả nhà ta ca hát.", icons: ["👨‍👩‍👧‍👦", "🎤"] },
+            { text: "A, cá ba sa và cá lá.", icons: ["🐠", "🍃"] },
+            { text: "Ông bà, ba má ta.", icons: ["👴👵", "👨‍👩‍👧‍👦"] },
+            { text: "Ba đã ra xa, cả nhà ta vỗ tay.", icons: ["🖐️", "👏"] },
+            { text: "Gà và cá đi đá banh.", icons: ["🐔", "⚽"] },
+            { text: "Bà mua quà cáp.", icons: ["🎁", "🛍️"] },
+            { text: "A, ba lái xe ta.", icons: ["👨‍👧", "🚗"] },
+            { text: "Cả nhà ta ăn cá và cà.", icons: ["🐟", "🍲"] },
+            { text: "Ba ra sân bay xa.", icons: ["✈️", "🗺️"] },
+            { text: "Gà ta ra ăn lá.", icons: ["🐓", "🍂"] },
+            { text: "Cá đã bơi ra xa.", icons: ["🐠", "🌊"] },
+            { text: "Bé ca hát bài ca ca.", icons: ["🎤", "🎶"] },
+            { text: "Má ta đã về nhà.", icons: ["👩‍👧", "🏠"] },
+            { text: "Chị cả ra ta ga.", icons: ["👩", "🚉"] },
+            { text: "Gà mái đã ăn cà.", icons: ["🐔", "🥗"] },
+            { text: "Gà mái và gà trống ra ao.", icons: ["🐓", "🦆"] },
+            { text: "Bé đã học ba, má.", icons: ["👧", "👨‍👩‍👧"] },
+            { text: "Ba mua bánh chả và chà là.", icons: ["🍰", "🍮"] },
+            { text: "Má làm gà và cá.", icons: ["👩‍🍳", "🍽️"] },
+            { text: "Ba và má đi xa.", icons: ["👫", "🗺️"] },
+            { text: "Anh đã ca một bài ca.", icons: ["🎤", "🎶"] },
+            { text: "Ba lái xe tải ra xa.", icons: ["🚚", "🛣️"] },
+            { text: "Gà mái và gà con.", icons: ["🐔", "🐣"] },
+            { text: "Cả nhà ta ra bãi cát.", icons: ["👨‍👩‍👧‍👦", "🏖️"] },
+            { text: "Ba đã mua gà và cá.", icons: ["🛒", "🐟"] },
+            { text: "Má đã ra siêu thị xa.", icons: ["🛍️", "🛒"] },
+            { text: "Gà ta đã ăn lá cây.", icons: ["🐓", "🌳"] },
+            { text: "Cá đã bơi ra xa hơn.", icons: ["🐠", "🏊"] },
+            { text: "Bà đã ra cửa hàng.", icons: ["👵", "🏪"] }
+        ];
+
+        let currentSentenceIndex = 0;
+        const totalSentences = sentences.length;
+
+        // Audio for recording
+        let mediaRecorder;
+        let recordedAudioChunks = [];
+        let recordedAudioBlob = null;
+        let recording = false;
+        
+        // Timer
+        let timer;
+        let timeLeft = MAX_TIME;
+        let timerRunning = true;
+
+        // DOM elements
+        const sentenceDisplay = document.getElementById('sentence-display');
+        const nextBtn = document.getElementById('next-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const readAloudBtn = document.getElementById('read-aloud-btn');
+        const recordBtn = document.getElementById('record-btn');
+        const playbackBtn = document.getElementById('playback-btn');
+        const counter = document.getElementById('counter');
+        const timerDisplay = document.getElementById('timer-display');
+        const stopTimerBtn = document.getElementById('stop-timer-btn');
+
+        // Functions
+        function updateUI() {
+            const currentSentence = sentences[currentSentenceIndex];
+            sentenceDisplay.innerHTML = '';
+            
+            const words = currentSentence.text.split(' ');
+            words.forEach((word, index) => {
+                const span = document.createElement('span');
+                span.textContent = word;
+                sentenceDisplay.appendChild(span);
+
+                if (index < words.length - 1) {
+                    const iconIndex = index % currentSentence.icons.length;
+                    const iconSpan = document.createElement('span');
+                    iconSpan.textContent = currentSentence.icons[iconIndex];
+                    iconSpan.classList.add('icon');
+                    sentenceDisplay.appendChild(iconSpan);
+                }
+            });
+
+            counter.textContent = `${currentSentenceIndex + 1}/${totalSentences}`;
+            resetTimer();
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            timeLeft = MAX_TIME;
+            timerRunning = true;
+            stopTimerBtn.textContent = 'Dừng lại';
+            timerDisplay.textContent = `Thời gian còn lại: ${timeLeft}s`;
+            timer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = `Thời gian còn lại: ${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    nextSentence();
+                }
+            }, 1000);
+        }
+
+        function toggleTimer() {
+            if (timerRunning) {
+                clearInterval(timer);
+                stopTimerBtn.textContent = 'Tiếp tục';
+            } else {
+                resetTimer();
+            }
+            timerRunning = !timerRunning;
+        }
+
+        // Sound effect for navigation
+        function playCuteSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.type = 'sine';
+                oscillator.frequency.value = 440;
+                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {
+                console.warn("AudioContext not supported, can't play sound effect.");
+            }
+        }
+
+        // --- Recording and Playback Logic ---
+
+        // Asks for microphone permission and initializes MediaRecorder
+        async function initRecorder() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                // Use a custom UI element for an alert instead of window.alert()
+                console.error('Trình duyệt không hỗ trợ ghi âm.');
+                recordBtn.disabled = true;
+                return;
+            }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = event => {
+                    recordedAudioChunks.push(event.data);
+                };
+                mediaRecorder.onstop = () => {
+                    recordedAudioBlob = new Blob(recordedAudioChunks, { type: 'audio/webm' });
+                    playbackBtn.disabled = false;
+                    recordBtn.textContent = 'Ghi âm lại';
+                    recordBtn.classList.remove('recording');
+                    recording = false;
+                };
+            } catch (err) {
+                console.error(`Không thể truy cập microphone. Vui lòng cấp quyền ghi âm.`);
+                recordBtn.disabled = true;
+            }
+        }
+
+        // Starts or stops the recording
+        function toggleRecording() {
+            if (!mediaRecorder) {
+                console.error('Chức năng ghi âm chưa sẵn sàng. Vui lòng thử lại.');
+                return;
+            }
+
+            if (!recording) {
+                recordedAudioChunks = [];
+                mediaRecorder.start();
+                recordBtn.textContent = 'Đang ghi âm...';
+                recordBtn.classList.add('recording');
+                playbackBtn.disabled = true;
+                recording = true;
+            } else {
+                mediaRecorder.stop();
+            }
+        }
+        
+        // Plays back the recorded audio
+        function playRecording() {
+            if (recordedAudioBlob) {
+                const audioUrl = URL.createObjectURL(recordedAudioBlob);
+                const audio = new Audio(audioUrl);
+                audio.play();
+            }
+        }
+        
+        // --- AI TTS Logic ---
+        
+        function showLoading(show) {
+            if (show) {
+                LOADING_OVERLAY.style.display = 'flex';
+                readAloudBtn.disabled = true;
+                nextBtn.disabled = true;
+                prevBtn.disabled = true;
+            } else {
+                LOADING_OVERLAY.style.display = 'none';
+                readAloudBtn.disabled = false;
+                nextBtn.disabled = false;
+                prevBtn.disabled = false;
+            }
+        }
+        
+        async function readAloud() {
+            showLoading(true);
+            const textToRead = `Đọc chậm và rõ ràng như một người đang kể chuyện: ${sentences[currentSentenceIndex].text}`;
+            const payload = {
+                contents: [{
+                    parts: [{ text: textToRead }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Charon" }
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            let retryCount = 0;
+            const maxRetries = 5;
+            let audioUrl = null;
+
+            while (retryCount < maxRetries) {
+                try {
+                    const response = await fetch(`${API_URL}${API_KEY}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        if (response.status === 429) {
+                            const delay = Math.pow(2, retryCount) * 1000;
+                            retryCount++;
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            continue;
+                        } else {
+                             console.error("API error:", response.status, response.statusText);
+                            break;
+                        }
+                    }
+
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType;
+
+                    if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                        const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
+                        const pcmData = base64ToArrayBuffer(audioData);
+                        const pcm16 = new Int16Array(pcmData);
+                        const wavBlob = pcmToWav(pcm16, sampleRate);
+                        audioUrl = URL.createObjectURL(wavBlob);
+                        const audio = new Audio(audioUrl);
+                        audio.play();
+                    } else {
+                        console.error("Invalid audio data from API.");
+                    }
+                    break; 
+
+                } catch (error) {
+                    console.error("Fetch error:", error);
+                    break;
+                }
+            }
+             showLoading(false);
+        }
+
+        // Helper functions for audio processing
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcmData, sampleRate) {
+            const numChannels = 1;
+            const bitDepth = 16;
+            const pcmLength = pcmData.byteLength;
+            const wavLength = pcmLength + 44;
+            const buffer = new ArrayBuffer(wavLength);
+            const view = new DataView(buffer);
+
+            let offset = 0;
+
+            // RIFF header
+            writeString(view, offset, 'RIFF'); offset += 4;
+            view.setUint32(offset, wavLength - 8, true); offset += 4;
+            writeString(view, offset, 'WAVE'); offset += 4;
+
+            // FMT sub-chunk
+            writeString(view, offset, 'fmt '); offset += 4;
+            view.setUint32(offset, 16, true); offset += 4; // Sub-chunk size
+            view.setUint16(offset, 1, true); offset += 2; // Audio format (1 = PCM)
+            view.setUint16(offset, numChannels, true); offset += 2;
+            view.setUint32(offset, sampleRate, true); offset += 4;
+            view.setUint32(offset, sampleRate * numChannels * (bitDepth / 8), true); offset += 4;
+            view.setUint16(offset, numChannels * (bitDepth / 8), true); offset += 2;
+            view.setUint16(offset, bitDepth, true); offset += 2;
+
+            // DATA sub-chunk
+            writeString(view, offset, 'data'); offset += 4;
+            view.setUint32(offset, pcmLength, true); offset += 4;
+
+            // Write PCM data
+            const pcmView = new Uint8Array(pcmData.buffer);
+            for (let i = 0; i < pcmLength; i++, offset++) {
+                view.setUint8(offset, pcmView[i]);
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+        
+        // Event handlers
+        function nextSentence() {
+            playCuteSound();
+            currentSentenceIndex = (currentSentenceIndex + 1) % totalSentences;
+            updateUI();
+        }
+
+        function prevSentence() {
+            playCuteSound();
+            currentSentenceIndex = (currentSentenceIndex - 1 + totalSentences) % totalSentences;
+            updateUI();
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUI();
+            initRecorder();
+            authenticate();
+        });
+
+        nextBtn.addEventListener('click', nextSentence);
+        prevBtn.addEventListener('click', prevSentence);
+        readAloudBtn.addEventListener('click', readAloud);
+        recordBtn.addEventListener('click', toggleRecording);
+        playbackBtn.addEventListener('click', playRecording);
+        stopTimerBtn.addEventListener('click', toggleTimer);
+    </script>
+</body>
+</html>
