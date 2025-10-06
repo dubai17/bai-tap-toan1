@@ -3,382 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bé Vui Học Hình Học - Vô Cực</title>
+    <title>Bé Vui Học Toán Nâng Cao</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Nunito', sans-serif;
-            background-color: #f0f9ff; /* Light sky blue background */
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
         }
-        .game-container {
-            max-width: 800px;
-            width: 95%;
-            position: relative; /* Needed for feedback overlay */
+        .expression-box {
+            width: 150px;
+            height: 100px;
+            font-size: 2.25rem; /* Reduced font size for expressions */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
         }
-        .shape-canvas {
-            border: 4px dashed #60a5fa; /* Dashed blue border */
-            background-color: #ffffff;
-            background-image:
-                linear-gradient(45deg, #e0f2fe 25%, transparent 25%),
-                linear-gradient(-45deg, #e0f2fe 25%, transparent 25%),
-                linear-gradient(45deg, transparent 75%, #e0f2fe 75%),
-                linear-gradient(-45deg, transparent 75%, #e0f2fe 75%);
-            background-size: 20px 20px;
+        .operator-btn {
+            width: 80px;
+            height: 80px;
+            font-size: 2.5rem;
+            transition: all 0.2s ease-in-out;
         }
-        .answer-btn {
-            transition: all 0.3s ease;
+        .operator-btn:active {
+            transform: scale(0.95);
         }
-        .answer-btn:hover:not(:disabled) {
-            transform: translateY(-4px) scale(1.05);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-        .answer-btn.correct {
-            background-color: #22c55e !important; /* Green-500 */
-            border-color: #16a34a !important;
-            color: white;
-        }
-        .answer-btn.incorrect {
-            background-color: #ef4444 !important; /* Red-500 */
-            border-color: #dc2626 !important;
-            color: white;
-            animation: shake 0.5s;
-        }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-        #feedbackIconContainer {
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        .mouse-face {
+            transition: all 0.3s ease-in-out;
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="bg-teal-100 flex items-center justify-center min-h-screen">
 
-    <div id="gameContainer" class="game-container bg-white p-6 md:p-8 rounded-2xl shadow-2xl border-4 border-blue-300">
-        
+    <div class="w-full max-w-lg mx-auto bg-white rounded-2xl shadow-2xl p-6 md:p-8 text-center">
+
         <!-- Header -->
-        <header class="text-center mb-6">
-            <h1 class="text-3xl md:text-4xl font-extrabold text-blue-600">Bé Vui Học Hình Học</h1>
-            <div class="flex justify-center gap-4 mt-4">
-                <span class="bg-green-100 text-green-800 text-lg font-semibold me-2 px-4 py-1.5 rounded-full">Đúng: <span id="correctCount">0</span></span>
-                <span class="bg-red-100 text-red-800 text-lg font-semibold me-2 px-4 py-1.5 rounded-full">Sai: <span id="incorrectCount">0</span></span>
-            </div>
-        </header>
+        <h1 class="text-3xl md:text-4xl font-bold text-teal-600 mb-4">Bé Vui Học Toán</h1>
+        <p class="text-gray-500 mb-6">Tính nhẩm rồi chọn dấu đúng nhé!</p>
 
-        <!-- Game Area -->
-        <main>
-            <!-- Shape Display -->
-            <div id="canvasContainer" class="w-full h-64 md:h-80 mx-auto mb-6 rounded-xl overflow-hidden shape-canvas">
-                <svg id="shapeCanvas" width="100%" height="100%"></svg>
+        <!-- Score Board -->
+        <div class="flex justify-center space-x-6 mb-6">
+            <div class="text-center">
+                <span class="text-4xl font-bold text-green-500" id="correct-score">0</span>
+                <p class="text-sm text-gray-500">Đúng</p>
             </div>
-            
-            <!-- Question -->
-            <div id="questionContainer" class="text-center mb-6">
-                <p id="questionText" class="text-xl md:text-2xl font-bold text-gray-800"></p>
+             <div class="text-center">
+                <span class="text-4xl font-bold text-blue-500" id="question-counter">0</span>
+                <p class="text-sm text-gray-500">Tổng câu</p>
             </div>
-
-            <!-- Answers -->
-            <div id="answersContainer" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <!-- Answer buttons will be inserted here by JavaScript -->
-            </div>
-
-            <!-- Feedback -->
-            <div id="feedbackContainer" class="text-center mt-6 h-16 flex flex-col items-center justify-center">
-                <p id="feedbackText" class="text-2xl font-bold"></p>
-            </div>
-        </main>
-        
-        <!-- Feedback Overlay with Icon -->
-        <div id="feedbackOverlay" class="hidden absolute inset-0 bg-gray-800 bg-opacity-30 flex items-center justify-center rounded-2xl z-10 p-4">
-            <div id="feedbackIconContainer" class="transform scale-0">
-                <!-- SVG icon goes here -->
+            <div class="text-center">
+                <span class="text-4xl font-bold text-red-500" id="incorrect-score">0</span>
+                <p class="text-sm text-gray-500">Sai</p>
             </div>
         </div>
+
+        <!-- Mouse Icon -->
+        <div class="my-6 h-24 flex items-center justify-center">
+            <svg id="mouse-icon" class="mouse-face h-24 w-24 text-gray-400" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path id="mouse-mouth" d="M8 15a4 4 0 108 0H8z"/>
+                <circle cx="9" cy="10" r="1.5"/>
+                <circle cx="15" cy="10" r="1.5"/>
+            </svg>
+        </div>
+
+        <!-- Math Problem -->
+        <div class="flex items-center justify-center space-x-2 md:space-x-4 mb-8">
+            <div id="num1" class="expression-box bg-blue-100 text-blue-800 font-bold rounded-xl shadow-md">?</div>
+            <div class="text-4xl font-bold text-gray-400">?</div>
+            <div id="num2" class="expression-box bg-purple-100 text-purple-800 font-bold rounded-xl shadow-md">?</div>
+        </div>
+
+        <!-- Operator Buttons -->
+        <div class="flex justify-center items-center space-x-3 md:space-x-4">
+            <button onclick="checkAnswer('<')" class="operator-btn bg-green-500 text-white font-bold rounded-full shadow-lg hover:bg-green-600">&lt;</button>
+            <button onclick="checkAnswer('=')" class="operator-btn bg-yellow-500 text-white font-bold rounded-full shadow-lg hover:bg-yellow-600">=</button>
+            <button onclick="checkAnswer('>')" class="operator-btn bg-red-500 text-white font-bold rounded-full shadow-lg hover:bg-red-600">&gt;</button>
+        </div>
+
     </div>
 
     <script>
         // DOM Elements
-        const gameContainer = document.getElementById('gameContainer');
-        const shapeCanvas = document.getElementById('shapeCanvas');
-        const questionText = document.getElementById('questionText');
-        const answersContainer = document.getElementById('answersContainer');
-        const feedbackText = document.getElementById('feedbackText');
-        const correctCountDisplay = document.getElementById('correctCount');
-        const incorrectCountDisplay = document.getElementById('incorrectCount');
-        const feedbackOverlay = document.getElementById('feedbackOverlay');
-        const feedbackIconContainer = document.getElementById('feedbackIconContainer');
-
-        // SVG Icons
-        const correctIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32 text-green-500 bg-white rounded-full p-2 shadow-xl" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /> </svg>`;
-        const incorrectIconSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="h-32 w-32 text-red-500 bg-white rounded-full p-2 shadow-xl" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /> </svg>`;
-
-        // Audio Context for sound effects
-        let audioContext;
-        
-        function initAudio() {
-            if (!audioContext) {
-                try {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                } catch(e) { console.error("Web Audio API is not supported in this browser"); }
-            }
-        }
-
-        function playSound(type) {
-            if (!audioContext) return;
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-
-            if (type === 'correct') {
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
-                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.5);
-            } else { // incorrect
-                oscillator.type = 'square';
-                oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.5);
-            }
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.5);
-        }
-
-        // --- NEW GAME DATA AND LOGIC ---
-        const shapeTypes = ['circle', 'triangle', 'square', 'rectangle', 'rhombus', 'heart', 'star', 'trapezoid', 'oval'];
-        const shapeDetails = {
-            circle: { name: 'hình tròn', color: 'yellow-500' },
-            triangle: { name: 'hình tam giác', color: 'pink-500' },
-            square: { name: 'hình vuông', color: 'purple-500' },
-            rectangle: { name: 'hình chữ nhật', color: 'green-500' },
-            rhombus: { name: 'hình thoi', color: 'indigo-500' },
-            heart: { name: 'hình trái tim', color: 'red-500' },
-            star: { name: 'hình ngôi sao', color: 'amber-400' },
-            trapezoid: { name: 'hình thang', color: 'cyan-500' },
-            oval: { name: 'hình oval', color: 'lime-500' },
-        };
-        const colors = ['#3b82f6', '#ef4444', '#22c55e', '#f97316', '#8b5cf6', '#f43f5e', '#eab308', '#14b8a6', '#6366f1'];
+        const num1El = document.getElementById('num1');
+        const num2El = document.getElementById('num2');
+        const correctScoreEl = document.getElementById('correct-score');
+        const incorrectScoreEl = document.getElementById('incorrect-score');
+        const questionCounterEl = document.getElementById('question-counter');
+        const mouseIcon = document.getElementById('mouse-icon');
+        const mouseMouth = document.getElementById('mouse-mouth');
+        const buttons = document.querySelectorAll('.operator-btn');
 
         // Game State
-        let correctCount = 0;
-        let incorrectCount = 0;
-        let correctAnswer = 0;
+        let result1, result2;
+        let correctScore = 0;
+        let incorrectScore = 0;
+        let questionCount = 0;
+        let isChecking = false;
+        
+        // Audio Synthesizer
+        let synth;
+        let audioStarted = false;
 
-        function startGame() {
-            correctCount = 0;
-            incorrectCount = 0;
-            updateStats();
-            loadQuestion();
+        function initializeAudio() {
+            if (audioStarted) return;
+            Tone.start();
+            synth = new Tone.Synth().toDestination();
+            audioStarted = true;
         }
 
-        function generateQuestion() {
-            const askFor = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
-            const questionDetail = shapeDetails[askFor];
-            const question = `Có bao nhiêu <span class="text-${questionDetail.color}">${questionDetail.name}</span> trong tranh?`;
-            
-            const shapes = [];
-            const shapeCount = 10 + Math.floor(Math.random() * 9); // 10 to 18 shapes
-            const canvasWidth = shapeCanvas.clientWidth;
-            const canvasHeight = shapeCanvas.clientHeight;
+        // --- Mouse Face Functions ---
+        function setMouseFace(state) {
+            mouseIcon.classList.remove('text-green-500', 'text-red-500', 'text-gray-400');
+            switch (state) {
+                case 'happy':
+                    mouseIcon.classList.add('text-green-500');
+                    mouseMouth.setAttribute('d', 'M8 14 C10 17, 14 17, 16 14');
+                    break;
+                case 'sad':
+                    mouseIcon.classList.add('text-red-500');
+                    mouseMouth.setAttribute('d', 'M8 16 C10 13, 14 13, 16 16');
+                    break;
+                default:
+                    mouseIcon.classList.add('text-gray-400');
+                    mouseMouth.setAttribute('d', 'M8 15a4 4 0 108 0H8z');
+                    break;
+            }
+        }
 
-            // --- NEW GRID LOGIC to prevent overlapping ---
-            const rows = 3;
-            const cols = 6;
-            const cellWidth = canvasWidth / cols;
-            const cellHeight = canvasHeight / rows;
-            const maxShapeSize = Math.min(cellWidth, cellHeight) * 0.8; // Ensure shape fits in cell with padding
+        // --- Sound Functions ---
+        function playCorrectSound() {
+            if (!synth) return;
+            const now = Tone.now();
+            synth.triggerAttackRelease("C5", "8n", now);
+            synth.triggerAttackRelease("G5", "8n", now + 0.2);
+        }
 
-            // Create a list of all possible grid cells
-            let gridPositions = [];
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    gridPositions.push({ r, c });
+        function playIncorrectSound() {
+            if (!synth) return;
+            synth.triggerAttackRelease("A2", "8n");
+        }
+
+        // --- Game Logic ---
+        function generateExpression() {
+            let numA, numB, operator, result;
+            const isAddition = Math.random() > 0.5;
+
+            if (isAddition) {
+                operator = '+';
+                // Ensure the sum is <= 30
+                result = 31; // Start with a value > 30 to enter the loop
+                while (result > 30) {
+                    numA = Math.floor(Math.random() * 31); // 0-30
+                    numB = Math.floor(Math.random() * 31); // 0-30
+                    result = numA + numB;
                 }
+            } else { // Subtraction
+                operator = '–'; // Use en dash for better visual
+                // Ensure the result is >= 0
+                numA = Math.floor(Math.random() * 31); // 0-30
+                numB = Math.floor(Math.random() * 31); // 0-30
+                // Swap to avoid negative numbers
+                if (numA < numB) {
+                    [numA, numB] = [numB, numA];
+                }
+                result = numA - numB;
             }
-
-            // Shuffle the grid positions for random placement
-            for (let i = gridPositions.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [gridPositions[i], gridPositions[j]] = [gridPositions[j], gridPositions[i]];
-            }
-
-            for (let i = 0; i < shapeCount; i++) {
-                const type = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
-                const size = 35 + Math.floor(Math.random() * (maxShapeSize - 35));
-
-                const pos = gridPositions[i];
-                
-                // Calculate center of the cell
-                const cellCenterX = pos.c * cellWidth + cellWidth / 2;
-                const cellCenterY = pos.r * cellHeight + cellHeight / 2;
-                
-                // Add some small jitter to make it look less rigid
-                const jitterX = (Math.random() - 0.5) * (cellWidth - size) * 0.4;
-                const jitterY = (Math.random() - 0.5) * (cellHeight - size) * 0.4;
-
-                shapes.push({
-                    type: type,
-                    color: colors[Math.floor(Math.random() * colors.length)],
-                    size: size,
-                    x: cellCenterX + jitterX,
-                    y: cellCenterY + jitterY,
-                });
-            }
-            // --- END NEW GRID LOGIC ---
-
-            return { askFor, question, shapes };
+            return {
+                text: `${numA} ${operator} ${numB}`,
+                value: result
+            };
         }
 
-        function loadQuestion() {
-            shapeCanvas.innerHTML = '';
-            answersContainer.innerHTML = '';
-            feedbackText.textContent = '';
-            feedbackOverlay.classList.add('hidden');
-            feedbackIconContainer.classList.remove('scale-100');
-            feedbackIconContainer.innerHTML = '';
-
-            const question = generateQuestion();
-            questionText.innerHTML = question.question;
-
-            question.shapes.forEach(shape => {
-                drawShape(shape.type, shape.color, shape.size, shape.x, shape.y);
-            });
-
-            correctAnswer = question.shapes.filter(s => s.type === question.askFor).length;
-
-            const options = generateOptions(correctAnswer);
-            options.forEach(option => {
-                const button = document.createElement('button');
-                button.textContent = option;
-                button.classList.add('answer-btn', 'bg-white', 'hover:bg-blue-100', 'text-blue-500', 'font-bold', 'py-4', 'md:py-6', 'text-2xl', 'rounded-xl', 'shadow-md', 'border-4', 'border-blue-200');
-                button.onclick = () => checkAnswer(option, button);
-                answersContainer.appendChild(button);
-            });
-        }
-        
-        function drawShape(type, color, size, x, y) {
-            const svgNS = "http://www.w3.org/2000/svg";
-            let shapeEl;
-
-            switch (type) {
-                case 'circle':
-                    shapeEl = document.createElementNS(svgNS, 'circle');
-                    shapeEl.setAttribute('cx', x); shapeEl.setAttribute('cy', y); shapeEl.setAttribute('r', size / 2);
-                    break;
-                case 'square':
-                    shapeEl = document.createElementNS(svgNS, 'rect');
-                    shapeEl.setAttribute('x', x - size / 2); shapeEl.setAttribute('y', y - size / 2); shapeEl.setAttribute('width', size); shapeEl.setAttribute('height', size); shapeEl.setAttribute('rx', 5);
-                    break;
-                case 'rectangle':
-                    shapeEl = document.createElementNS(svgNS, 'rect');
-                    shapeEl.setAttribute('x', x - size / 2); shapeEl.setAttribute('y', y - size / 1.5 / 2); shapeEl.setAttribute('width', size); shapeEl.setAttribute('height', size / 1.5); shapeEl.setAttribute('rx', 5);
-                    break;
-                case 'triangle':
-                    shapeEl = document.createElementNS(svgNS, 'polygon');
-                    shapeEl.setAttribute('points', `${x},${y - size/2} ${x - size/2},${y + size/2} ${x + size/2},${y + size/2}`);
-                    break;
-                case 'oval':
-                    shapeEl = document.createElementNS(svgNS, 'ellipse');
-                    shapeEl.setAttribute('cx', x); shapeEl.setAttribute('cy', y); shapeEl.setAttribute('rx', size / 2); shapeEl.setAttribute('ry', size / 3);
-                    break;
-                case 'rhombus':
-                     shapeEl = document.createElementNS(svgNS, 'polygon');
-                     shapeEl.setAttribute('points', `${x},${y - size/2} ${x + size/2},${y} ${x},${y + size/2} ${x - size/2},${y}`);
-                     break;
-                case 'trapezoid':
-                    shapeEl = document.createElementNS(svgNS, 'polygon');
-                    shapeEl.setAttribute('points', `${x - size/2},${y + size/4} ${x + size/2},${y + size/4} ${x + size/3},${y - size/4} ${x - size/3},${y - size/4}`);
-                    break;
-                case 'star':
-                    shapeEl = document.createElementNS(svgNS, 'polygon');
-                    let points = "";
-                    const outerRadius = size / 2;
-                    const innerRadius = size / 4;
-                    for (let i = 0; i < 10; i++) {
-                        const radius = i % 2 === 0 ? outerRadius : innerRadius;
-                        const angle = (i * 36 * Math.PI / 180) - (Math.PI / 2);
-                        points += `${x + radius * Math.cos(angle)},${y + radius * Math.sin(angle)} `;
-                    }
-                    shapeEl.setAttribute('points', points);
-                    break;
-                case 'heart':
-                    shapeEl = document.createElementNS(svgNS, 'path');
-                    const d = `M ${x} ${y + size/4} C ${x} ${y}, ${x - size/2} ${y - size/5}, ${x - size/2} ${y + size/4} C ${x - size/2} ${y + size/2}, ${x} ${y + size/2}, ${x} ${y + size} C ${x} ${y + size/2}, ${x + size/2} ${y + size/2}, ${x + size/2} ${y + size/4} C ${x + size/2} ${y - size/5}, ${x} ${y}, ${x} ${y + size/4} Z`;
-                    shapeEl.setAttribute('d', d);
-                    break;
-            }
-            if (shapeEl) { shapeEl.setAttribute('fill', color); shapeCanvas.appendChild(shapeEl); }
-        }
-        
-        function generateOptions(correctAnswer) {
-            let options = new Set([correctAnswer]);
-            while (options.size < 4) {
-                const randomOption = Math.max(0, correctAnswer + Math.floor(Math.random() * 5) - 2);
-                if (randomOption > 10) continue; // Keep options reasonable
-                options.add(randomOption);
-            }
-            return Array.from(options).sort(() => Math.random() - 0.5);
-        }
-
-        function showFeedback(isCorrect) {
-            feedbackOverlay.classList.remove('hidden');
-            setTimeout(() => feedbackIconContainer.classList.add('scale-100'), 10);
+        function generateProblem() {
+            questionCount++;
+            questionCounterEl.textContent = questionCount;
             
-            if (isCorrect) {
-                playSound('correct');
-                feedbackIconContainer.innerHTML = correctIconSVG;
-                feedbackText.textContent = 'Đúng rồi, bé giỏi quá!';
-                feedbackText.style.color = '#22c55e';
-            } else {
-                playSound('incorrect');
-                feedbackIconContainer.innerHTML = incorrectIconSVG;
-                feedbackText.textContent = 'Chưa đúng rồi!';
-                feedbackText.style.color = '#ef4444';
-            }
+            const exp1 = generateExpression();
+            const exp2 = generateExpression();
+
+            result1 = exp1.value;
+            result2 = exp2.value;
+
+            num1El.textContent = exp1.text;
+            num2El.textContent = exp2.text;
+            setMouseFace('neutral');
         }
 
-        function checkAnswer(selectedAnswer, button) {
-            initAudio();
-            const buttons = answersContainer.querySelectorAll('button');
+        function checkAnswer(userAnswer) {
+            initializeAudio();
+            if (isChecking) return;
+            isChecking = true;
             buttons.forEach(btn => btn.disabled = true);
 
-            const isCorrect = (selectedAnswer === correctAnswer);
-
-            if (isCorrect) {
-                button.classList.add('correct');
-                correctCount++;
+            let correctAnswer;
+            if (result1 < result2) {
+                correctAnswer = '<';
+            } else if (result1 > result2) {
+                correctAnswer = '>';
             } else {
-                button.classList.add('incorrect');
-                incorrectCount++;
-                buttons.forEach(btn => {
-                    if (parseInt(btn.textContent) === correctAnswer) {
-                        btn.classList.add('correct');
-                    }
-                });
+                correctAnswer = '=';
             }
-            
-            updateStats();
-            showFeedback(isCorrect);
 
-            setTimeout(loadQuestion, 2000); // Load next question after 2s
+            if (userAnswer === correctAnswer) {
+                correctScore++;
+                correctScoreEl.textContent = correctScore;
+                playCorrectSound();
+                setMouseFace('happy');
+            } else {
+                incorrectScore++;
+                incorrectScoreEl.textContent = incorrectScore;
+                playIncorrectSound();
+                setMouseFace('sad');
+            }
+
+            setTimeout(() => {
+                generateProblem();
+                isChecking = false;
+                buttons.forEach(btn => btn.disabled = false);
+            }, 1500);
         }
 
-        function updateStats() {
-            correctCountDisplay.textContent = correctCount;
-            incorrectCountDisplay.textContent = incorrectCount;
-        }
-
-        // Event Listeners
-        window.addEventListener('resize', loadQuestion);
-        
-        // Start the game on load
-        // Use a small delay to ensure canvas has dimensions
-        setTimeout(startGame, 100);
+        // Initialize the game
+        window.onload = () => {
+            generateProblem();
+        };
     </script>
 </body>
 </html>
-
